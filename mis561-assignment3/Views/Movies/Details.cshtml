@@ -1,0 +1,80 @@
+﻿@model mis561_assignment3.Models.Movie
+
+@{
+    ViewData["Title"] = "Details";
+    var redditPostSentiments = ViewBag.RedditPostSentiments as List<(string Post, string Sentiment)>;
+    var overallSentiment = ViewBag.OverallSentiment as string;
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>Movie</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Title)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Title)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Genre)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Genre)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.IMDBLink)
+        </dt>
+        <dd class="col-sm-10">
+            <a href="@Html.DisplayFor(model => model.IMDBLink)" target="_blank">IMDB Link</a>
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.ReleaseYear)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.ReleaseYear)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.MovieImage)
+        </dt>
+        <dd class="col-sm-10">
+            @if (Model.MovieImage != null && Model.MovieImage.Length != 0)
+            {
+                <img height="150" src="@Url.Action("GetMoviePhoto", "Movies", new {id = Model.Id})" />
+            }
+        </dd>
+    </dl>
+    <h1>Overall sentiment: @overallSentiment</h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Reddit Post</th>
+                <th>Sentiment</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (redditPostSentiments != null && redditPostSentiments.Count > 0)
+            {
+                foreach (var postSentiment in redditPostSentiments)
+                {
+                    <tr>
+                        <td>@postSentiment.Post</td>
+                        <td>@postSentiment.Sentiment</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="2">No posts found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
