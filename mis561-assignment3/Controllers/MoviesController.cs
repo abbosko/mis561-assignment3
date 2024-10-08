@@ -61,62 +61,68 @@ namespace mis561_assignment3.Controllers
             double totalCompoundScore = 0;
             int validPostsCount = 0;
 
-            List<string> textToExamine = await SearchRedditAsync(movie.Title);
-
-            // Analyze each Reddit post's sentiment
-            foreach (var post in textToExamine)
+            try
             {
-                if (!string.IsNullOrEmpty(post))
+                List<string> textToExamine = await SearchRedditAsync(movie.Title);
+
+                // Analyze each Reddit post's sentiment
+                foreach (var post in textToExamine)
                 {
-                    var results = analyzer.PolarityScores(post);
-
-                    // Categorize sentiment based on the compound score
-                    string sentiment;
-                    if (results.Compound >= 0.05)
+                    if (!string.IsNullOrEmpty(post))
                     {
-                        sentiment = "Positive";
-                    }
-                    else if (results.Compound <= -0.05)
-                    {
-                        sentiment = "Negative";
-                    }
-                    else
-                    {
-                        sentiment = "Neutral";
-                    }
+                        var results = analyzer.PolarityScores(post);
 
-                    // Add the post and its sentiment to the list
-                    redditPostSentiments.Add((post, sentiment));
-                    totalCompoundScore += results.Compound;
-                    validPostsCount++;
+                        // Categorize sentiment based on the compound score
+                        string sentiment;
+                        if (results.Compound >= 0.05)
+                        {
+                            sentiment = "Positive";
+                        }
+                        else if (results.Compound <= -0.05)
+                        {
+                            sentiment = "Negative";
+                        }
+                        else
+                        {
+                            sentiment = "Neutral";
+                        }
 
-                    // Stop collecting once we reach 100 posts
-                    if (redditPostSentiments.Count >= 100)
-                        break;
+                        // Add the post and its sentiment to the list
+                        redditPostSentiments.Add((post, sentiment));
+                        totalCompoundScore += results.Compound;
+                        validPostsCount++;
+
+                        // Stop collecting once we reach 100 posts
+                        if (redditPostSentiments.Count >= 100)
+                            break;
+                    }
                 }
-            }
 
-            string overallSentiment = "Neutral";  // Default
-            if (validPostsCount > 0)
+                string overallSentiment = "Neutral";  // Default
+                if (validPostsCount > 0)
+                {
+                    double averageCompoundScore = totalCompoundScore / validPostsCount;
+                    if (averageCompoundScore >= 0.05)
+                    {
+                        overallSentiment = "Positive";
+                    }
+                    else if (averageCompoundScore <= -0.05)
+                    {
+                        overallSentiment = "Negative";
+                    }
+                }
+
+                // Pass the top 100 posts, their sentiments, and overall sentiment to the view
+                ViewBag.OverallSentiment = overallSentiment;
+
+
+                // Pass the top 100 posts and their sentiments to the view
+                ViewBag.RedditPostSentiments = redditPostSentiments.Take(100).ToList();
+            }
+            catch
             {
-                double averageCompoundScore = totalCompoundScore / validPostsCount;
-                if (averageCompoundScore >= 0.05)
-                {
-                    overallSentiment = "Positive";
-                }
-                else if (averageCompoundScore <= -0.05)
-                {
-                    overallSentiment = "Negative";
-                }
+                ViewBag.RedditPostSentiments = null;
             }
-
-            // Pass the top 100 posts, their sentiments, and overall sentiment to the view
-            ViewBag.OverallSentiment = overallSentiment;
-
-
-            // Pass the top 100 posts and their sentiments to the view
-            ViewBag.RedditPostSentiments = redditPostSentiments.Take(100).ToList();
-
 
             return View(movie);
         }
